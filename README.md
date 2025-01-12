@@ -18,7 +18,7 @@ The **NewsAPI Plugin** is a WordPress plugin that fetches news articles from [Ne
 
 1. Clone or download the plugin to your WordPress `plugins` directory:
    ```bash
-   git clone https://github.com/dantweb/newsapi.git wp-content/plugins/newsapi
+   git clone https://github.com/dantweb/wp-newsapi-plugin.git wp-content/plugins/newsapi
    cd wp-content/plugins/newsapi
    composer install
    ```
