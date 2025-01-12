@@ -1,5 +1,5 @@
 {
-  "name": "dantweb.dev/newsapi-plugin",
+  "name": "dantweb/newsapi",
   "description": "Fetches news from NewsAPI and stores them as unpublished posts in WordPress.",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",

@@ -18,7 +18,10 @@ The **NewsAPI Plugin** is a WordPress plugin that fetches news articles from [Ne
 
 1. Clone or download the plugin to your WordPress `plugins` directory:
    ```bash
-   git clone https://github.com/your-repo/newsapi-plugin.git wp-content/plugins/newsapi
+   git clone https://github.com/dantweb/newsapi.git wp-content/plugins/newsapi
+   cd wp-content/plugins/newsapi
+   composer install
+   ```
 
 2. Navigate to the Plugins section in your WordPress admin dashboard and activate the NewsAPI Plugin.
 
@@ -128,9 +131,3 @@ For questions, issues, or feature requests, please open an issue on GitHub.
 
 ### License
 This plugin is licensed under the GPL-2.0-or-later license. See the LICENSE file for details.
-
-
-### Instructions
-1. Replace placeholders like `https://github.com/your-repo/newsapi-plugin.git` with your actual repository URL.
-2. Ensure the `LICENSE` file is added if required.
-3. Place this file in the root of your plugin directory as `README.md`.
