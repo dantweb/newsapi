@@ -1,0 +1,38 @@
+{
+  "name": "dantweb.dev/newsapi-plugin",
+  "description": "Fetches news from NewsAPI and stores them as unpublished posts in WordPress.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+
+  "require": {
+    "php": ">=7.4",
+    "guzzlehttp/guzzle": "^7.9",
+    "symfony/dotenv": "^7.1",
+    "andreskrey/readability.php": "*",
+    "openai-php/client": "^0.10.3",
+    "justinrainbow/json-schema": "^6.0"
+  },
+
+  "require-dev": {
+    "phpunit/phpunit": "^8.5.10",
+    "wp-phpunit/wp-phpunit": "^6.7",
+    "yoast/phpunit-polyfills": "^3.0",
+    "brain/monkey": "^2.6"
+  },
+
+  "autoload": {
+    "psr-4": {
+      "NewsApiPlugin\\": "src/",
+      "NewsApiPlugin\\Tests\\": "tests/"
+    }
+  },
+
+  "scripts": {
+    "tests": "phpunit --bootstrap tests/bootstrap.php tests"
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true
+    }
+  }
+}
