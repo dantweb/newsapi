@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace NewsApiPlugin;
 
 use NewsApiPlugin\Admin\BlogScraperMetaBox;
+use NewsApiPlugin\Admin\GoogleScholarMetaBox;
+use NewsApiPlugin\Admin\PubMedMetaBox;
 use NewsApiPlugin\Admin\RSSStreamMetaBox;
 use NewsApiPlugin\Admin\SettingsPage;
 use NewsApiPlugin\Admin\StreamMetaBox;
@@ -21,18 +23,35 @@ class NewsApi
 
         // Register settings and meta boxes
         add_action('admin_init', [SettingsPage::class, 'register']);
-        add_action('add_meta_boxes', [StreamMetaBox::class, 'register']);
-        add_action('add_meta_boxes', [RunnerMetaBox::class, 'register']);
+        add_action('add_meta_boxes', [StreamMetaBox::class, 'register'], 10);
+        add_action('add_meta_boxes', [RunnerMetaBox::class, 'register'], 20);
+        add_action('add_meta_boxes', [PubMedMetaBox::class, 'register'], 30);
+        add_action('add_meta_boxes', [GoogleScholarMetaBox::class, 'register'], 40);
 
         add_action('admin_init', [\NewsApiPlugin\Admin\SettingsPage::class, 'registerSettings']);
         StreamMetaBox::register();
         RSSStreamMetaBox::register();
         BlogScraperMetaBox::register();
+        PubMedMetaBox::register();
+        GoogleScholarMetaBox::register();
 
         add_action('template_redirect', [__CLASS__, 'restrictFeedAccess']);
         add_action('init', [self::class, 'addActions']);
     }
 
+    /**
+     * Check if the `newsapi_google_scholar` post type is created.
+     *
+     * @return bool
+     */
+    public static function isGoogleScholarPostTypeCreated(): bool
+    {
+        return post_type_exists('newsapi_google_scholar');
+    }
+
+    /**
+     * Restrict access to the feed based on a secret token.
+     */
     public static function restrictFeedAccess(): void
     {
         $secret_token = 'your_secret_token_here';
@@ -42,7 +61,9 @@ class NewsApi
         }
     }
 
-
+    /**
+     * Register custom post types.
+     */
     public static function registerPostTypes(): void
     {
         register_post_type('newsapi_stream', [
@@ -50,12 +71,10 @@ class NewsApi
             'public' => false,
             'show_ui' => true,
             'show_in_menu' => 'newsapi-plugin',
-            'supports' => ['title'], // remove 'editor'
+            'supports' => ['title'],
             'menu_icon' => 'dashicons-rss',
         ]);
 
-
-        // New RSS streams CPT
         register_post_type('newsapi_rss_stream', [
             'label' => 'RSS Streams',
             'public' => false,
@@ -83,8 +102,28 @@ class NewsApi
             'menu_icon' => 'dashicons-admin-site',
         ]);
 
+        register_post_type('newsapi_pubmed', [
+            'label' => 'PubMed',
+            'public' => false,
+            'show_ui' => true,
+            'show_in_menu' => 'newsapi-plugin',
+            'supports' => ['title'],
+            'menu_icon' => 'dashicons-admin-site',
+        ]);
+
+        register_post_type('newsapi_gs', [
+            'label' => 'Google Scholar',
+            'public' => false,
+            'show_ui' => true,
+            'show_in_menu' => 'newsapi-plugin',
+            'supports' => ['title'],
+            'menu_icon' => 'dashicons-admin-site',
+        ]);
     }
 
+    /**
+     * Register the admin menu.
+     */
     public static function registerAdminMenu(): void
     {
         // Top-level menu: NewsAPI
@@ -116,17 +155,18 @@ class NewsApi
             'newsapi-marked-posts',
             [self::class, 'renderMarkedPostsPage']
         );
-
-
-
     }
 
-
-    public static function filter_feed_query($query): \WP_Query
+    /**
+     * Filter the feed query based on custom parameters.
+     *
+     * @param \WP_Query $query
+     * @return \WP_Query
+     */
+    public static function filterFeedQuery(\WP_Query $query): \WP_Query
     {
         // Check if this is a feed request
         if (!$query->is_feed || !isset($_GET['token'])) {
-//            error_log('[filter_feed_query] Not a feed query or token missing.');
             return $query;
         }
 
@@ -137,7 +177,6 @@ class NewsApi
 
         // Handle `show_only_unread`
         if ($query->is_feed() && $query->is_main_query()) {
-
             // Handle the 'show_on_page' parameter
             if (isset($_GET['show_on_page']) && is_numeric($_GET['show_on_page'])) {
                 $query->set('posts_per_rss', (int) $_GET['show_on_page']);
@@ -158,20 +197,24 @@ class NewsApi
         return $query;
     }
 
-
-
+    /**
+     * Add actions for feed processing.
+     */
     public static function addActions(): void
     {
-        add_action('the_post', [self::class, 'mark_post_as_read']);
-        add_filter('pre_get_posts', [self::class, 'filter_feed_query']);
+        add_action('the_post', [self::class, 'markPostAsRead']);
+        add_filter('pre_get_posts', [self::class, 'filterFeedQuery']);
         add_action('the_post', function ($post) {
             error_log('[RSS Feed] Processing post: ' . $post->post_title . ' (ID: ' . $post->ID . ')');
         });
-
     }
 
-
-    public static function mark_post_as_read(\WP_Post $post): void
+    /**
+     * Mark a post as read when accessed via the feed.
+     *
+     * @param \WP_Post $post
+     */
+    public static function markPostAsRead(\WP_Post $post): void
     {
         if (is_feed() && isset($_GET['mark_as_read']) && $_GET['mark_as_read'] === 'true') {
             update_post_meta($post->ID, 'read_status', 'read');
@@ -179,13 +222,22 @@ class NewsApi
         }
     }
 
-// The main "NewsAPI" admin page could be a dashboard or just an intro page
+    /**
+     * Render the main admin page.
+     */
     public static function renderAdminPage(): void
     {
         echo '<div class="wrap"><h1>NewsAPI Dashboard</h1><p>Welcome to the NewsAPI plugin admin.</p></div>';
     }
 
-    public static function count_posts_by_meta($meta_key, $meta_value): ?string
+    /**
+     * Count posts by meta key and value.
+     *
+     * @param string $meta_key
+     * @param string $meta_value
+     * @return string|null
+     */
+    public static function countPostsByMeta(string $meta_key, string $meta_value): ?string
     {
         global $wpdb;
         if ($meta_value == 'all') {
@@ -200,6 +252,9 @@ class NewsApi
         ");
     }
 
+    /**
+     * Render the Marked Posts page.
+     */
     public static function renderMarkedPostsPage(): void
     {
         $table = new MarkedPostsTable();

@@ -50,6 +50,20 @@ class SettingsPage
             'newsapi_main'
         );
 
+        // Register fields for SerpAPI Config
+        register_setting('newsapi_settings', 'newsapi_gs_api_key');
+
+        add_settings_field(
+            'newsapi_gs_api_key',
+            'Google Scholar API Key (SerpAPI)',
+            function() {
+                $value = esc_attr(get_option('newsapi_gs_api_key', ''));
+                echo '<input type="text" name="newsapi_gs_api_key" value="' . $value . '" class="regular-text">';
+            },
+            'newsapi-settings',
+            'newsapi_main'
+        );
+
         // Register fields for AI Config
         register_setting('newsapi_settings', 'newsapi_ai_openai_api_key');
         register_setting('newsapi_settings', 'newsapi_ai_url');
@@ -70,7 +84,7 @@ class SettingsPage
             'newsapi_main'
         );
 
-       add_settings_field(
+        add_settings_field(
             'newsapi_ai_openai_api_key',
             'AI API Key',
             function() {
@@ -124,7 +138,47 @@ class SettingsPage
             'newsapi-settings',
             'newsapi_main'
         );
+
+        // Register fields for PubMed API Config
+        register_setting('newsapi_settings', 'newsapi_pubmed_api_key');
+        register_setting('newsapi_settings', 'pubmed_max_steps');
+        register_setting('newsapi_settings', 'pubmed_max_articles_per_step');
+
+        // Add fields to the PubMed Config section
+        add_settings_field(
+            'newsapi_pubmed_api_key',
+            'PubMed API Key',
+            function() {
+                $value = esc_attr(get_option('newsapi_pubmed_api_key', ''));
+                echo '<input type="text" name="newsapi_pubmed_api_key" value="' . $value . '" class="regular-text">';
+            },
+            'newsapi-settings',
+            'newsapi_main'
+        );
+
+        add_settings_field(
+            'pubmed_max_steps',
+            'Max Steps Deep',
+            function() {
+                $value = esc_attr(get_option('pubmed_max_steps', 3));
+                echo '<input type="number" name="pubmed_max_steps" value="' . $value . '" class="regular-text">';
+            },
+            'newsapi-settings',
+            'newsapi_main'
+        );
+
+        add_settings_field(
+            'pubmed_max_articles_per_step',
+            'Max Articles per Step',
+            function() {
+                $value = esc_attr(get_option('pubmed_max_articles_per_step', 10));
+                echo '<input type="number" name="pubmed_max_articles_per_step" value="' . $value . '" class="regular-text">';
+            },
+            'newsapi-settings',
+            'newsapi_main'
+        );
     }
+
 
     public static function render(): void
     {
